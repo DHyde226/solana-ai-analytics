@@ -3,21 +3,23 @@ import pandas as pd
 from sklearn.ensemble import IsolationForest
 import matplotlib.pyplot as plt
 
-def detect_whales(input_csv="wallet_features.csv"):
+def detect_whales(input_csv="wallet_behavior_features.csv"):
     df = pd.read_csv(input_csv)
-    X = df[["tx_count", "total_sent", "avg_fee"]].fillna(0)
+    X = df[["tx_count", "total_sent_sol", "avg_fee"]].fillna(0)
 
-    model = IsolationForest(contamination=0.05, random_state=42)
-    df["anomaly"] = model.fit_predict(X)
+   # Choose top 5% of wallets by total_sent_sol as whales
+    threshold = df["total_sent_sol"].quantile(0.99)
+    df["is_whale"] = (df["total_sent_sol"] >= threshold).astype(int)
 
-    whales = df[df["anomaly"] == -1].sort_values("total_sent", ascending=False)
+    whales = df[df["is_whale"] == 1].sort_values("total_sent_sol", ascending=False)
+
     whales.to_csv("whale_wallets.csv")
     print("🐋 Top detected whales:")
     print(whales.head(10))
     print("✅ Saved all detected whales to whale_wallets.csv")
 
-    plt.scatter(df["tx_count"], df["total_sent"],
-                c=(df["anomaly"] == -1), cmap="coolwarm", alpha=0.6)
+    plt.scatter(df["tx_count"], df["total_sent_sol"],
+            c=df["is_whale"], cmap="coolwarm", alpha=0.6)
 
 
     plt.xlabel("Transaction Count")
