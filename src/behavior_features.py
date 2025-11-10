@@ -51,7 +51,7 @@ def extract_wallet_features(df):
         try:
             transfers = json.loads(row.get("transfers", "[]"))
         except Exception:
-            continue
+            transfers = []
 
         fee = row.get("fee", 0)
         t = None
@@ -64,6 +64,18 @@ def extract_wallet_features(df):
         tx_type = row.get("type", "unknown")
         all_types.add(tx_type)
 
+        # ✅ NEW: increment type count once per transaction
+        # Pick a wallet to associate the type with
+        if transfers and transfers[0].get("source"):
+            src = transfers[0].get("source")
+        else:
+            # fallback: no transfer? assign to a dummy “source” if possible
+            src = row.get("signature") or "unknown_source"
+
+        w = wallet_stats[src]
+        w["type_counts"][tx_type] += 1  # ✅ now counted for every transaction type
+
+        # then proceed with transfers (for lamports, tokens, etc.)
         for tr in transfers:
             src = tr.get("source")
             dst = tr.get("destination")
@@ -80,9 +92,6 @@ def extract_wallet_features(df):
             w["destinations"].append(dst)
             w["lamports_sent"].append(lamports)
 
-            # increment count for this type
-            w["type_counts"][tx_type] += 1
-
             if kind == "spl-token":
                 w["tokens"].append(mint)
                 if "mint" in str(mint).lower() or lamports == 0:
@@ -91,7 +100,22 @@ def extract_wallet_features(df):
             if dst and any(p.lower() in str(dst).lower() for p in DEFI_PROGRAMS):
                 w["defi_programs"].add(dst)
 
+
     data = []
+
+    all_types = set()  # track all types globally for consistent columns
+
+    for _, row in df.iterrows():
+        ...
+        tx_type = row.get("type", "unknown")
+        all_types.add(tx_type)
+        ...
+    
+    # --- After the main loop over all rows ---
+    print("\n🔍 Detected unique transaction types:")
+    for t in sorted(all_types):
+        print(f" - {t}")
+    print(f"📊 Total unique types detected: {len(all_types)}\n")
     for wallet, s in wallet_stats.items():
         timestamps = sorted([t for t in s["timestamps"] if isinstance(t, datetime)])
         tx_count = len(timestamps)
