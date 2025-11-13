@@ -223,17 +223,3 @@ plt.show()
 **MIT License © 2025 Daniel Vuksan**
 
 ---
-
-### 📷 Suggested Visuals (for GitHub)
-
-```markdown
-<p align="center">
-  <img src="images/whale_detection_plot.png" width="48%">
-  <img src="images/pca_clusters_plot.png" width="48%">
-  
-</p>
-
-<p align="center">
-  <em>Left: Whale Detection — Right: GMM Clustering via PCA</em>
-</p>
-```
