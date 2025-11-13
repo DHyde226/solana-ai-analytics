@@ -48,12 +48,43 @@ def run_gmm_clustering(input_csv="wallet_behavior_features.csv",
 
     # --- Visualize in 2D (first two PCA components) ---
     plt.figure(figsize=(8, 6))
-    plt.scatter(X_pca[:, 0], X_pca[:, 1], c=df["cluster"], cmap="tab10", alpha=0.7)
+
+    # Scatter each cluster separately so we can label them
+    for cluster_id in sorted(df["cluster"].unique()):
+        mask = df["cluster"] == cluster_id
+        plt.scatter(
+            X_pca[mask, 0],
+            X_pca[mask, 1],
+            label=f"Cluster {cluster_id}",
+            alpha=0.7
+        )
+
     plt.xlabel("PCA 1")
     plt.ylabel("PCA 2")
     plt.title("Wallet Clusters (Gaussian Mixture Model)")
+    plt.legend(title="Clusters", loc="best", fontsize=9)
     plt.tight_layout()
     plt.show()
+
+    # --- Visualize clusters using actual wallet features ---
+    plt.figure(figsize=(8, 6))
+
+    for cluster_id in sorted(df["cluster"].unique()):
+        mask = df["cluster"] == cluster_id
+        plt.scatter(
+            df.loc[mask, "tx_count"],
+            df.loc[mask, "total_sent_sol"],
+            label=f"Cluster {cluster_id}",
+            alpha=0.7
+        )
+
+    plt.xlabel("Transaction Count")
+    plt.ylabel("Total SOL Sent (lamports)")
+    plt.title("Wallet Clusters (Gaussian Mixture Model)")
+    plt.legend(title="Clusters", loc="best", fontsize=9)
+    plt.tight_layout()
+    plt.show()
+
 
     # --- Cluster summaries ---
     print("\n📊 Cluster summary (mean values per cluster):")

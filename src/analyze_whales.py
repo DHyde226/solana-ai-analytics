@@ -7,8 +7,7 @@ def detect_whales(input_csv="wallet_behavior_features.csv"):
     df = pd.read_csv(input_csv)
     X = df[["tx_count", "total_sent_sol", "avg_fee"]].fillna(0)
 
-   # Choose top 5% of wallets by total_sent_sol as whales
-    threshold = df["total_sent_sol"].quantile(0.99)
+    threshold = df["total_sent_sol"].quantile(0.999)
     df["is_whale"] = (df["total_sent_sol"] >= threshold).astype(int)
 
     whales = df[df["is_whale"] == 1].sort_values("total_sent_sol", ascending=False)
